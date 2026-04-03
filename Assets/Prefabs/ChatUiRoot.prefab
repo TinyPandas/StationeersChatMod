@@ -117,9 +117,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _chatRoot: {fileID: 1567560084636110206}
   _scrollRectOnChatRoot: {fileID: 4474587130542391975}
-  _messageContent: {fileID: 1252884677689400050}
   _inputBarRectRef: {fileID: 5961215476503867734}
   _dragHandleRef: {fileID: 450556362422957887}
+  _messageListView: {fileID: 4217527973507642686}
   _chatLauncher: {fileID: 0}
   _hideChatLauncherInScenes:
   - Base
@@ -224,6 +224,7 @@ GameObject:
   - component: {fileID: 4611611334354807503}
   - component: {fileID: 66225678886479509}
   - component: {fileID: 3698743386442036084}
+  - component: {fileID: 4217527973507642686}
   m_Layer: 5
   m_Name: MessageViewport
   m_TagString: Untagged
@@ -303,6 +304,19 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4217527973507642686
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5846936563756233154}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31454ec3f9e9576429a3056b872269b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _contentRect: {fileID: 1252884677689400050}
 --- !u!1 &5890993813987895337
 GameObject:
   m_ObjectHideFlags: 0

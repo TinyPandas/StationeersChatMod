@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using Assets.Scripts.Objects.Entities;
 using ChatMod.UI;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -11,51 +9,36 @@ using UnityEngine.UI;
 namespace ChatMod
 {
     /// <summary>
-    /// Binds to the authored chat hierarchy and drives data only (messages, input, drag save). All references must be assigned on the prefab — no runtime <c>Transform.Find</c>.
+    /// Coordinates panel lifecycle, input, drag, scene visibility, and HUD hotkey.
+    /// Message rendering is delegated to <see cref="ChatMessageListView"/>.
+    /// All references must be assigned on the prefab.
     /// </summary>
     public sealed class ChatUiBehaviour : MonoBehaviour
     {
         public static ChatUiBehaviour? Instance { get; private set; }
 
         [Header("Prefab references (required)")]
-        [Tooltip("RectTransform of ChatRoot (the draggable panel root).")]
         [SerializeField] private RectTransform _chatRoot = null!;
-        [Tooltip("ScrollRect on ChatRoot — scrolls MessageViewport / MessageContent.")]
         [SerializeField] private ScrollRect _scrollRectOnChatRoot = null!;
-        [Tooltip("RectTransform of MessageContent (child of MessageViewport).")]
-        [SerializeField] private RectTransform _messageContent = null!;
-        [Tooltip("RectTransform of the bar that owns chat input — the GameObject with ChatInputBar (usually named InputBar), not the ChatInputField child.")]
         [SerializeField] private RectTransform _inputBarRectRef = null!;
-        [Tooltip("ChatPanelDragHandle on DragBar (Root Rect → ChatRoot in prefab).")]
         [SerializeField] private ChatPanelDragHandle _dragHandleRef = null!;
+        [SerializeField] private ChatMessageListView _messageListView = null!;
+
         [Header("Launcher (optional)")]
-        [Tooltip("Lower-corner chat button / badge root. Hidden when the active scene name matches an entry below (e.g. Stationeers Base menu).")]
         [SerializeField] private GameObject? _chatLauncher;
-        [Tooltip("Active scene names (no .unity suffix) where the launcher is hidden in the menu — case-insensitive. While Human.LocalHuman is set (in-session), the launcher stays visible even if the active scene name still matches (additive loading).")]
         [SerializeField] private string[] _hideChatLauncherInScenes = { "Base" };
 
         [Header("Vanilla HUD chat row")]
-        [Tooltip("Icon on the cloned row (use the Sprite from Assets/Texture2D/message.png; message.asset is TMP-only).")]
         [SerializeField] private Sprite? _vanillaHotkeyRowIcon;
-        [Tooltip("Cloned HUD row: icon size as a fraction of the smaller IconBG side (large sprites).")]
         [SerializeField] [Range(0.35f, 1f)] private float _vanillaHotkeyIconSlotFill = 0.62f;
-        [Tooltip("Cloned HUD row: key label (e.g. F7) TMP size multiplier vs. vanilla template.")]
         [SerializeField] [Range(0.5f, 1.25f)] private float _vanillaHotkeyKeyHintFontScale = 0.82f;
 
         private RectTransform _rootRect = null!;
         private ScrollRect _scrollRect = null!;
-        private RectTransform _contentRect = null!;
         private RectTransform _inputBarRect = null!;
         private ChatPanelDragHandle? _dragHandle;
         private ChatInputBar? _inputBar;
 
-        private readonly List<GameObject> _spawnedMessageRows = new();
-        private bool _loggedMissingMessageRowPrefab;
-        private int _lastRenderedCount = -1;
-        private long _lastRenderedLastTicks = -1;
-        private long _lastRenderedFirstSeq = -1;
-        private int _lastMessageCountForScroll = -1;
-        private bool _scrollToBottomNextFrame;
         private bool _wasInGameplay;
         private bool _wasInputFocused;
         private int _ignoreOpenFromGameInputFramesRemaining;
@@ -64,6 +47,11 @@ namespace ChatMod
         private int _unreadWhileChatClosed;
         private KeyCode? _cachedToggleChatPanelKeyForHud;
         private Coroutine? _focusInputCoroutine;
+
+        // Metrics for change detection — kept here so ChatUiBehaviour controls when to refresh.
+        private int _lastRenderedCount = -1;
+        private long _lastRenderedLastTicks = -1;
+        private long _lastRenderedFirstSeq = -1;
 
         public bool IsInputActive => _inputBar != null && _inputBar.IsFocused;
 
@@ -148,14 +136,6 @@ namespace ChatMod
             ChatHotkeyVanillaClone.SetUnreadBadgeCount(0);
         }
 
-        /// <summary>Forces a full message list rebuild the next time the panel is visible (history may have changed while closed).</summary>
-        private void InvalidateMessageListRefresh()
-        {
-            _lastRenderedCount = -1;
-            _lastRenderedLastTicks = -1;
-            _lastRenderedFirstSeq = -1;
-        }
-
         private void SyncHotkeyHudKeyLabelFromConfig(bool force)
         {
             if (ModConfig.ToggleChatPanelKey == null)
@@ -211,17 +191,16 @@ namespace ChatMod
 
         private bool TryResolveReferences()
         {
-            if (_chatRoot == null || _scrollRectOnChatRoot == null || _messageContent == null ||
-                _inputBarRectRef == null || _dragHandleRef == null)
+            if (_chatRoot == null || _scrollRectOnChatRoot == null ||
+                _inputBarRectRef == null || _dragHandleRef == null || _messageListView == null)
             {
                 ChatModLog.Error(
-                    "[ChatUiBehaviour] Assign all prefab references: Chat Root, Scroll Rect On Chat Root, Message Content, Input Bar Rect Ref, Drag Handle Ref.");
+                    "[ChatUiBehaviour] Assign all prefab references: Chat Root, Scroll Rect, Input Bar Rect Ref, Drag Handle Ref, Message List View.");
                 return false;
             }
 
             _rootRect = _chatRoot;
             _scrollRect = _scrollRectOnChatRoot;
-            _contentRect = _messageContent;
             _inputBarRect = _inputBarRectRef;
             _dragHandle = _dragHandleRef;
 
@@ -319,7 +298,7 @@ namespace ChatMod
                     ChatHistoryStore.Clear();
                     PlayerNameColorCache.Clear();
                     ClearUnreadHotkeyBadge();
-                    DestroyMessageRowsAndResetMessageUiState();
+                    _messageListView.Clear();
                 }
 
                 _rootRect.gameObject.SetActive(false);
@@ -347,11 +326,11 @@ namespace ChatMod
             SyncKeyManagerTypingState();
             RefreshMessages();
 
-            if (_scrollToBottomNextFrame)
+            if (_messageListView.ScrollToBottomPending)
             {
                 Canvas.ForceUpdateCanvases();
                 _scrollRect.verticalNormalizedPosition = 0f;
-                _scrollToBottomNextFrame = false;
+                _messageListView.AcknowledgeScrollToBottom();
             }
 
             if (_ignoreOpenFromGameInputFramesRemaining > 0)
@@ -401,10 +380,9 @@ namespace ChatMod
 
         private void RefreshMessages(bool force = false)
         {
-            if (!_referencesBound)
+            if (!_referencesBound || !_chatRoot.gameObject.activeSelf)
                 return;
 
-            bool panelOpen = _chatRoot.gameObject.activeSelf;
             ChatHistoryStore.GetTailMetrics(out int count, out long lastTicks, out long firstSeq);
 
             bool metricsChanged = force ||
@@ -412,181 +390,21 @@ namespace ChatMod
                                   _lastRenderedLastTicks != lastTicks ||
                                   _lastRenderedFirstSeq != firstSeq;
 
-            bool rowCountMismatch = panelOpen && _spawnedMessageRows.Count != count;
-
-            if (!metricsChanged && !rowCountMismatch)
+            if (!metricsChanged)
                 return;
 
-            if (metricsChanged || force)
-            {
-                _lastRenderedCount = count;
-                _lastRenderedLastTicks = lastTicks;
-                _lastRenderedFirstSeq = firstSeq;
-            }
+            _lastRenderedCount = count;
+            _lastRenderedLastTicks = lastTicks;
+            _lastRenderedFirstSeq = firstSeq;
 
-            if (!panelOpen)
-                return;
-
-            if (count != _lastMessageCountForScroll)
-            {
-                _lastMessageCountForScroll = count;
-                _scrollToBottomNextFrame = true;
-            }
-
-            IReadOnlyList<ChatEntry> snapshot = ChatHistoryStore.GetSnapshot();
-            SyncMessageRows(snapshot, forceFullRebuild: force);
+            _messageListView.Refresh(ChatHistoryStore.GetSnapshot(), force);
         }
 
-        private void DestroyMessageRowsAndResetMessageUiState()
+        private void InvalidateMessageListRefresh()
         {
-            for (int i = 0; i < _spawnedMessageRows.Count; i++)
-            {
-                if (_spawnedMessageRows[i] != null)
-                    Destroy(_spawnedMessageRows[i]);
-            }
-
-            _spawnedMessageRows.Clear();
-            _lastMessageCountForScroll = -1;
             _lastRenderedCount = -1;
             _lastRenderedLastTicks = -1;
             _lastRenderedFirstSeq = -1;
-        }
-
-        private void DestroyAllSpawnedMessageRows()
-        {
-            for (int i = 0; i < _spawnedMessageRows.Count; i++)
-            {
-                if (_spawnedMessageRows[i] != null)
-                    Destroy(_spawnedMessageRows[i]);
-            }
-
-            _spawnedMessageRows.Clear();
-        }
-
-        private void SyncMessageRows(IReadOnlyList<ChatEntry> messages, bool forceFullRebuild)
-        {
-            if (forceFullRebuild)
-            {
-                FullRebuildMessageRows(messages);
-                return;
-            }
-
-            if (messages.Count == 0)
-            {
-                DestroyAllSpawnedMessageRows();
-                LayoutRebuilder.ForceRebuildLayoutImmediate(_contentRect);
-                return;
-            }
-
-            const int maxTrims = 4096;
-            int trims = 0;
-
-            while (_spawnedMessageRows.Count > 0 && trims < maxTrims)
-            {
-                var go = _spawnedMessageRows[0];
-                if (go == null)
-                {
-                    _spawnedMessageRows.RemoveAt(0);
-                    continue;
-                }
-
-                var marker = go.GetComponent<ChatMessageRowMarker>();
-                if (marker == null)
-                {
-                    FullRebuildMessageRows(messages);
-                    return;
-                }
-
-                if (marker.Sequence == messages[0].Sequence)
-                    break;
-
-                if (marker.Sequence < messages[0].Sequence)
-                {
-                    Destroy(go);
-                    _spawnedMessageRows.RemoveAt(0);
-                    trims++;
-                    continue;
-                }
-
-                FullRebuildMessageRows(messages);
-                return;
-            }
-
-            if (trims >= maxTrims)
-            {
-                FullRebuildMessageRows(messages);
-                return;
-            }
-
-            while (_spawnedMessageRows.Count > messages.Count)
-            {
-                int last = _spawnedMessageRows.Count - 1;
-                var go = _spawnedMessageRows[last];
-                if (go != null)
-                    Destroy(go);
-                _spawnedMessageRows.RemoveAt(last);
-            }
-
-            while (_spawnedMessageRows.Count < messages.Count)
-            {
-                int idx = _spawnedMessageRows.Count;
-                if (!TryAppendMessageRow(messages[idx]))
-                {
-                    FullRebuildMessageRows(messages);
-                    return;
-                }
-            }
-
-            LayoutRebuilder.ForceRebuildLayoutImmediate(_contentRect);
-        }
-
-        private void FullRebuildMessageRows(IReadOnlyList<ChatEntry> messages)
-        {
-            DestroyAllSpawnedMessageRows();
-            if (messages == null || messages.Count == 0)
-            {
-                LayoutRebuilder.ForceRebuildLayoutImmediate(_contentRect);
-                return;
-            }
-
-            for (int i = 0; i < messages.Count; i++)
-            {
-                if (!TryAppendMessageRow(messages[i]))
-                    break;
-            }
-
-            LayoutRebuilder.ForceRebuildLayoutImmediate(_contentRect);
-        }
-
-        private bool TryAppendMessageRow(ChatEntry entry)
-        {
-            string prefabName = entry.IsHost
-                ? ChatUiBootstrap.MessageRowHostPrefabName
-                : ChatUiBootstrap.MessageRowPrefabName;
-            var prefab = ChatUiBootstrap.TryGetNamedPrefab(prefabName);
-            if (prefab == null)
-            {
-                if (!_loggedMissingMessageRowPrefab)
-                {
-                    ChatModLog.Warning(
-                        "[ChatMod] Missing MessageRow / MessageRowHost in mod content (root names must match).");
-                    _loggedMissingMessageRowPrefab = true;
-                }
-
-                return false;
-            }
-
-            var inst = Instantiate(prefab, _contentRect, false);
-            inst.name = prefab.name;
-            var marker = inst.AddComponent<ChatMessageRowMarker>();
-            marker.Sequence = entry.Sequence;
-
-            var tmp = inst.GetComponent<TextMeshProUGUI>() ??
-                      inst.GetComponentInChildren<TextMeshProUGUI>(true);
-            ChatUiLayout.ApplyConfiguredMessageFontSize(tmp);
-            ChatMessageFormatting.ApplyTo(tmp, entry, entry.IsHost);
-            _spawnedMessageRows.Add(inst);
-            return true;
         }
 
         /// <summary>Show chat and focus input (vanilla chat intercept, programmatic open).</summary>

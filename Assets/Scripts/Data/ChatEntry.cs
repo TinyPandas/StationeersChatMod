@@ -7,6 +7,7 @@ namespace ChatMod
     public class ChatEntry
     {
         public const string DefaultNameColorHex = "B8B8B8";
+        public const float DefaultMessageFontSize = 18f;
 
         public DateTime Timestamp { get; set; }
         public string DisplayName { get; set; } = "";
