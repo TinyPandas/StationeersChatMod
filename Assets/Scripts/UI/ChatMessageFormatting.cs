@@ -25,7 +25,7 @@ namespace ChatMod
 
         public static string BuildLine(ChatEntry entry, bool hostVariant)
         {
-            string nameHex = entry.NameColorHex ?? ChatUiLayout.DefaultNameColorHex;
+            string nameHex = entry.NameColorHex ?? ChatEntry.DefaultNameColorHex;
             string name = StripHostSuffix(entry.DisplayName);
             if (hostVariant)
                 return $"[{entry.Timestamp:HH:mm:ss}] {HostSpriteTag}<color=#{nameHex}>{name}</color>: {entry.Message}";

@@ -23,7 +23,7 @@ namespace ChatMod.Patches
             if (!ShouldCapture(displayName))
                 return;
 
-            ChatHistoryStore.Add(displayName, output, ChatUiLayout.DefaultNameColorHex);
+            ChatHistoryStore.Add(displayName, output, ChatEntry.DefaultNameColorHex);
         }
 
         private static bool ShouldCapture(string displayName)

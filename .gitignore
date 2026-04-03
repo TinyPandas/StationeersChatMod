@@ -115,3 +115,7 @@ InitTestScene*.unity*
 
 # Unity package manager lock — reproducible from manifest.json
 Packages/packages-lock.json
+
+# Unity auto-generated duplicate csproj files (Unity regenerates these)
+Unitychatmod.csproj
+ProjectSetup.editor.csproj
