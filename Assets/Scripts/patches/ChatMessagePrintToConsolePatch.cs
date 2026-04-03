@@ -8,6 +8,10 @@ namespace ChatMod.Patches
     [HarmonyPatch(typeof(ChatMessage), nameof(ChatMessage.PrintToConsole))]
     public static class ChatMessagePrintToConsolePatch
     {
+        private static long _lastDedupeHumanId;
+        private static string? _lastDedupeText;
+        private static int _lastDedupeFrame = -1;
+
         private static bool Prefix(ChatMessage __instance)
         {
             if (__instance == null)
@@ -18,6 +22,18 @@ namespace ChatMod.Patches
 
             if (string.IsNullOrWhiteSpace(chatText))
                 return false;
+
+            // On a listen server (host + client), PrintToConsole fires twice for the
+            // same message in the same frame — once server-side, once client-side.
+            int frame = UnityEngine.Time.frameCount;
+            if (frame == _lastDedupeFrame &&
+                __instance.HumanId == _lastDedupeHumanId &&
+                chatText == _lastDedupeText)
+                return false;
+
+            _lastDedupeFrame = frame;
+            _lastDedupeHumanId = __instance.HumanId;
+            _lastDedupeText = chatText;
 
             string nameColorHex = PlayerNameColorCache.GetOrResolve(__instance.HumanId);
             bool isOwnMessage = Human.LocalHuman != null && __instance.HumanId == Human.LocalHuman.ReferenceId;

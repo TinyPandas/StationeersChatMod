@@ -84,9 +84,6 @@ InitTestScene*.unity*
 /[Aa]ssets/StreamingAssets/aa*
 /[Aa]ssets/AddressableAssetsData/link.xml*
 /[Aa]ssets/Addressables_Temp*
-# By default, Addressables content builds will generate addressables_content_state.bin
-# files in platform-specific subfolders, for example:
-# /Assets/AddressableAssetsData/OSX/addressables_content_state.bin
 /[Aa]ssets/AddressableAssetsData/*/*.bin*
 
 # Visual Scripting auto-generated files
@@ -97,3 +94,24 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# ── ChatMod: exclude generated / third-party / environment-specific content ──
+
+# Game and plugin DLLs — installed locally, not source-controlled
+/[Aa]ssets/Assemblies/
+/[Aa]ssets/Assemblies.meta
+
+# TextMesh Pro package content — installed via Unity Package Manager
+/[Aa]ssets/TextMesh\ Pro/
+/[Aa]ssets/TextMesh\ Pro.meta
+
+# Unity Editor setup wizard — template scaffolding, not part of the mod
+/[Aa]ssets/Editor/
+/[Aa]ssets/Editor.meta
+
+# IDE folders
+.idea/
+.vscode/
+
+# Unity package manager lock — reproducible from manifest.json
+Packages/packages-lock.json
