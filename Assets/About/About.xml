@@ -1,0 +1,37 @@
+﻿<ModMetadata xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>UnityChatMod</Name>
+  <Author>DefaultCompany</Author>
+  <Version>1.0</Version>
+  <!-- Steam description using steam styling tags for Steam workshop page -->
+  <Description>[h1]ChatMod[/h1]
+
+    Installation: Subscribe the workshop item and make sure that BepInEx and StationeersLaunchpad are installed.
+    See: https://github.com/StationeersLaunchPad/StationeersLaunchPad
+
+    This mod is an attempt to overhaul the existing Chat system within Stationeers.
+  </Description>
+  <!-- Ingame Description using TMP tags for Workshop menu -->
+  <InGameDescription><![CDATA[<size="30"><color=#ffa500> ChatMod </color></size>
+Installation: Subscribe the workshop item and make sure that BepInEx and StationeersLaunchpad are installed.
+See: https://github.com/StationeersLaunchPad/StationeersLaunchPad
+
+This mod is an attempt to overhaul the existing Chat system within Stationeers.
+]]></InGameDescription>
+  <!-- The whole contents of ChangeLog should be changed for each publication for Steam workshop page -->
+  <ChangeLog>
+    [h3]Version 0.1.0:[/h3]
+    [list]
+    [*] Redesign: New fancy UI
+    [/list]
+  </ChangeLog>
+  <WorkshopHandle>3683897665</WorkshopHandle>
+  <!-- StationeersMods and BepInEx tags for Steam workshop page will be automatically added by the framework when publishing -->
+  <Tags>
+    <Tag>StationeersMods</Tag>
+  </Tags>
+  <!-- Automatic downloads of dependencies -->
+  <Dependencies />
+  <!-- Automatic reordering of the mods list -->
+  <LoadBefore />
+  <LoadAfter />
+</ModMetadata>
