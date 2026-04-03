@@ -32,7 +32,7 @@ namespace ChatMod
         {
             lock (Sync)
             {
-                Cache[humanId] = hex ?? ChatUiLayout.DefaultNameColorHex;
+                Cache[humanId] = hex ?? ChatEntry.DefaultNameColorHex;
             }
         }
 
@@ -58,7 +58,7 @@ namespace ChatMod
         {
             var human = Thing.Find<Human>(humanId);
             if (human == null)
-                return ChatUiLayout.DefaultNameColorHex;
+                return ChatEntry.DefaultNameColorHex;
 
             return SuitColorToHex(human);
         }
@@ -67,11 +67,11 @@ namespace ChatMod
         public static string SuitColorToHex(Human human)
         {
             if (human?.Suit?.AsThing?.CustomColor == null)
-                return ChatUiLayout.DefaultNameColorHex;
+                return ChatEntry.DefaultNameColorHex;
 
             var c = human.Suit.AsThing.CustomColor.Color;
             if (IsTooCloseToWhite(c))
-                return ChatUiLayout.DefaultNameColorHex;
+                return ChatEntry.DefaultNameColorHex;
 
             return ColorToHex(c);
         }

@@ -6,7 +6,7 @@ namespace ChatMod
     /// <summary>
     /// BepInEx config entries for chat history, window position, sounds, and console capture.
     /// </summary>
-    public class ModConfig
+    public static class ModConfig
     {
         public static ConfigEntry<int> MaxMessages = null!;
         public static ConfigEntry<float> NotificationDuration = null!;

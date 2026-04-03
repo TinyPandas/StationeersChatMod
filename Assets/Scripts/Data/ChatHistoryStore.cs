@@ -10,8 +10,8 @@ namespace ChatMod
         private static readonly object Sync = new();
         private static long _nextSequence;
 
-        /// <summary>Raised on main thread after a message is stored that should count toward the HUD unread badge (e.g. not your own player chat).</summary>
-        public static event Action? UnreadCandidateMessageAdded;
+        /// <summary>Raised after a message is stored.</summary>
+        public static event Action? MessageAdded;
 
         public static IReadOnlyList<ChatEntry> GetSnapshot()
         {
@@ -67,7 +67,7 @@ namespace ChatMod
             }
 
             if (countTowardUnreadBadge)
-                UnreadCandidateMessageAdded?.Invoke();
+                MessageAdded?.Invoke();
         }
 
         public static void Clear()
@@ -77,8 +77,6 @@ namespace ChatMod
                 Messages.Clear();
                 _nextSequence = 0;
             }
-
-            PlayerNameColorCache.Clear();
         }
     }
 }

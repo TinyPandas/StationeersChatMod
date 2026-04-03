@@ -122,7 +122,7 @@ namespace ChatMod
         {
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.activeSceneChanged += OnActiveSceneChanged;
-            ChatHistoryStore.UnreadCandidateMessageAdded += OnUnreadChatMessageWhileMaybeClosed;
+            ChatHistoryStore.MessageAdded += OnUnreadChatMessageWhileMaybeClosed;
             ApplyChatLauncherForActiveScene();
         }
 
@@ -130,7 +130,7 @@ namespace ChatMod
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.activeSceneChanged -= OnActiveSceneChanged;
-            ChatHistoryStore.UnreadCandidateMessageAdded -= OnUnreadChatMessageWhileMaybeClosed;
+            ChatHistoryStore.MessageAdded -= OnUnreadChatMessageWhileMaybeClosed;
         }
 
         private void OnUnreadChatMessageWhileMaybeClosed()
@@ -317,6 +317,7 @@ namespace ChatMod
                 if (_wasInGameplay)
                 {
                     ChatHistoryStore.Clear();
+                    PlayerNameColorCache.Clear();
                     ClearUnreadHotkeyBadge();
                     DestroyMessageRowsAndResetMessageUiState();
                 }

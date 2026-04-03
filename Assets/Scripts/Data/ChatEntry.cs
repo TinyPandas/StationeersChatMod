@@ -3,9 +3,11 @@ using System;
 
 namespace ChatMod
 {
-    /// <summary>A single chat message with timestamp, display name, and text; visibility rules for collapsed feed.</summary>
+    /// <summary>A single chat message with timestamp, display name, and text.</summary>
     public class ChatEntry
     {
+        public const string DefaultNameColorHex = "B8B8B8";
+
         public DateTime Timestamp { get; set; }
         public string DisplayName { get; set; } = "";
         public string Message { get; set; } = "";
@@ -17,11 +19,5 @@ namespace ChatMod
 
         /// <summary>Monotonic id assigned in <see cref="ChatHistoryStore"/>; aligns UI rows with store after head trim.</summary>
         public long Sequence { get; set; }
-
-        public bool IsVisibleInCollapsedView(DateTime now)
-        {
-            var duration = ModConfig.NotificationDuration?.Value ?? 10;
-            return (now - Timestamp).TotalSeconds <= duration;
-        }
     }
 }
