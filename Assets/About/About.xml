@@ -1,24 +1,54 @@
 ﻿<ModMetadata xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <Name>UnityChatMod</Name>
-  <Author>DefaultCompany</Author>
-  <Version>1.0</Version>
+  <Name>ChatMod</Name>
+  <Author>TinyPanda</Author>
+  <Version>0.1.1</Version>
   <!-- Steam description using steam styling tags for Steam workshop page -->
   <Description>[h1]ChatMod[/h1]
 
-    Installation: Subscribe the workshop item and make sure that BepInEx and StationeersLaunchpad are installed.
-    See: https://github.com/StationeersLaunchPad/StationeersLaunchPad
+A modern chat overlay for Stationeers. Replaces the vanilla chat input with a persistent, draggable panel that supports message history, notification sounds, and auto-fade.
 
-    This mod is an attempt to overhaul the existing Chat system within Stationeers.
+[h3]Features[/h3]
+[list]
+[*] Draggable chat panel with scrollable message history
+[*] HUD hotkey icon with unread message badge
+[*] Configurable auto-fade — panel fades out after inactivity
+[*] Notification sounds for incoming messages
+[*] Player name colors based on suit color
+[*] Host indicator icon on host messages
+[*] Console message capture (errors, actions, general output)
+[*] Fully configurable via BepInEx Configuration Manager
+[/list]
+
+[h3]Installation[/h3]
+Subscribe on the Workshop and make sure BepInEx and StationeersLaunchPad are installed.
+See: https://github.com/StationeersLaunchPad/StationeersLaunchPad
   </Description>
   <!-- Ingame Description using TMP tags for Workshop menu -->
-  <InGameDescription><![CDATA[<size="30"><color=#ffa500> ChatMod </color></size>
-Installation: Subscribe the workshop item and make sure that BepInEx and StationeersLaunchpad are installed.
-See: https://github.com/StationeersLaunchPad/StationeersLaunchPad
+  <InGameDescription><![CDATA[<size="30"><color=#ffa500>ChatMod</color></size>
 
-This mod is an attempt to overhaul the existing Chat system within Stationeers.
+A modern chat overlay for Stationeers. Replaces the vanilla chat input with a persistent, draggable panel that supports message history, notification sounds, and auto-fade.
+
+<b>Installation:</b> Subscribe on the Workshop and make sure BepInEx and StationeersLaunchPad are installed.
+See: https://github.com/StationeersLaunchPad/StationeersLaunchPad
 ]]></InGameDescription>
   <!-- The whole contents of ChangeLog should be changed for each publication for Steam workshop page -->
   <ChangeLog>
+    [h3]Version 0.1.1:[/h3]
+    [list]
+    [*] New: Auto-fade — chat panel fades out and closes after configurable inactivity period
+    [*] New: EnableAutoFade config toggle to disable auto-fade entirely
+    [*] Fix: F7 / HUD icon toggle no longer auto-focuses the input field
+    [*] Fix: Deduplicate messages on listen servers (host + client)
+    [*] Fix: Cache notification sound clip to avoid repeated disk reads
+    [*] Refactor: Complete codebase restructure — clean layer boundaries (Data, UI, Audio, Patches)
+    [*] Refactor: ChatUiBehaviour + ChatUiBootstrap merged into ChatPanel
+    [*] Refactor: Message rendering extracted to ChatMessageListView
+    [*] Refactor: HotkeyHudClone consolidated (CloneMarker now private nested class)
+    [*] Refactor: Removed dead code (ChatInputBar.Build, unused layout constants)
+    [*] Refactor: Normalized namespaces and folder structure
+    [*] Chore: Tightened .gitignore — removed game DLLs, TMP package, editor wizard from tracking
+    [/list]
+
     [h3]Version 0.1.0:[/h3]
     [list]
     [*] Redesign: New fancy UI
