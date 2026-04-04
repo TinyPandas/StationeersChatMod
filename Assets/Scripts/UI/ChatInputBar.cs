@@ -70,8 +70,10 @@ namespace ChatMod
 
         public void Clear()
         {
-            if (_field != null)
-                _field.text = "";
+            if (_field == null) return;
+            _field.text = "";
+            _field.caretPosition = 0;
+            _field.stringPosition = 0;
         }
     }
 }
