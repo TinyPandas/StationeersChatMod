@@ -224,7 +224,9 @@ namespace ChatMod
         {
             if (!_referencesBound || _ignoreOpenFramesRemaining > 0) return;
 
-            if (!_rootRect.gameObject.activeSelf)
+            bool wasAlreadyActive = _rootRect.gameObject.activeSelf;
+
+            if (!wasAlreadyActive)
             {
                 _rootRect.gameObject.SetActive(true);
                 ClearUnreadBadge();
@@ -242,7 +244,12 @@ namespace ChatMod
                 return;
             }
 
-            StartFocusAfterFrames(3);
+            // If panel was already visible, focus immediately — no layout settle needed.
+            // Only delay when we just activated the GameObject.
+            if (wasAlreadyActive)
+                _inputBar?.RequestFocus();
+            else
+                StartFocusAfterFrames(1);
         }
 
         /// <summary>Toggle panel visibility.</summary>
