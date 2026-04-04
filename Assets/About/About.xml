@@ -1,7 +1,7 @@
 ﻿<ModMetadata xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Name>ChatMod</Name>
   <Author>TinyPanda</Author>
-  <Version>0.1.1</Version>
+  <Version>0.1.2</Version>
   <!-- Steam description using steam styling tags for Steam workshop page -->
   <Description>[h1]ChatMod[/h1]
 
@@ -33,11 +33,16 @@ See: https://github.com/StationeersLaunchPad/StationeersLaunchPad
 ]]></InGameDescription>
   <!-- The whole contents of ChangeLog should be changed for each publication for Steam workshop page -->
   <ChangeLog>
+    [h3]Version 0.1.2:[/h3]
+    [list]
+    [*] New: Chat panel auto-fade with configurable timeout (EnableAutoFade, AutoFadeTimeout)
+    [*] New: Panel reopens on new message if it was auto-closed by fade
+    [*] Fix: F7 / HUD icon toggle no longer auto-focuses the input field
+    [*] Fix: Notification sound now bundled via prefab (no longer requires loose wav file)
+    [/list]
+
     [h3]Version 0.1.1:[/h3]
     [list]
-    [*] New: Auto-fade — chat panel fades out and closes after configurable inactivity period
-    [*] New: EnableAutoFade config toggle to disable auto-fade entirely
-    [*] Fix: F7 / HUD icon toggle no longer auto-focuses the input field
     [*] Fix: Deduplicate messages on listen servers (host + client)
     [*] Fix: Cache notification sound clip to avoid repeated disk reads
     [*] Refactor: Complete codebase restructure — clean layer boundaries (Data, UI, Audio, Patches)
@@ -47,11 +52,6 @@ See: https://github.com/StationeersLaunchPad/StationeersLaunchPad
     [*] Refactor: Removed dead code (ChatInputBar.Build, unused layout constants)
     [*] Refactor: Normalized namespaces and folder structure
     [*] Chore: Tightened .gitignore — removed game DLLs, TMP package, editor wizard from tracking
-    [/list]
-
-    [h3]Version 0.1.0:[/h3]
-    [list]
-    [*] Redesign: New fancy UI
     [/list]
   </ChangeLog>
   <WorkshopHandle>3683897665</WorkshopHandle>

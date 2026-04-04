@@ -82,6 +82,9 @@ namespace ChatMod
         [SerializeField] [Range(0.35f, 1f)] private float _vanillaHotkeyIconSlotFill = 0.62f;
         [SerializeField] [Range(0.5f, 1.25f)] private float _vanillaHotkeyKeyHintFontScale = 0.82f;
 
+        [Header("Audio")]
+        [SerializeField] private AudioClip? _notificationClip;
+
         // ── Runtime state ─────────────────────────────────────────────────────
         private RectTransform _rootRect = null!;
         private ScrollRect _scrollRect = null!;
@@ -103,6 +106,7 @@ namespace ChatMod
 
         private enum FadeState { Idle, Counting, Fading }
         private FadeState _fadeState = FadeState.Idle;
+        private bool _closedByFade;
 
         private float _inactivityTimer;
         private const float FadeDuration = 0.5f;
@@ -197,6 +201,7 @@ namespace ChatMod
 
             HandleAltReleaseFocus();
             SyncKeyManagerTypingState();
+
             RefreshMessages();
 
             if (_messageListView.ScrollToBottomPending)
@@ -298,7 +303,18 @@ namespace ChatMod
                 return;
             }
 
-            // Panel is closed — increment unread badge
+            // Panel was auto-closed by fade — reopen it
+            if (_closedByFade)
+            {
+                _closedByFade = false;
+                _rootRect.gameObject.SetActive(true);
+                ClearUnreadBadge();
+                InvalidateMessageListRefresh();
+                ResetInactivityTimer();
+                return;
+            }
+
+            // Panel was manually closed — just increment badge
             _unreadWhileClosed++;
             HotkeyHudClone.SetUnreadBadgeCount(_unreadWhileClosed);
         }
@@ -409,6 +425,7 @@ namespace ChatMod
             _canvasGroup.interactable = true;
             _rootRect.gameObject.SetActive(false);
             _fadeState = FadeState.Idle;
+            _closedByFade = false;
         }
 
         private void UpdateAutoFade()
@@ -467,6 +484,7 @@ namespace ChatMod
                         _canvasGroup.alpha = 1f;
                         _rootRect.gameObject.SetActive(false);
                         _fadeState = FadeState.Idle;
+                        _closedByFade = true;
                     }
                     break;
             }
@@ -515,6 +533,7 @@ namespace ChatMod
             HotkeyHudClone.IconSpriteOverride = _vanillaHotkeyRowIcon;
             HotkeyHudClone.IconSlotFillFraction = _vanillaHotkeyIconSlotFill;
             HotkeyHudClone.KeyHintFontScale = _vanillaHotkeyKeyHintFontScale;
+            ChatNotificationSound.Clip = _notificationClip;
             SyncHotkeyKeyLabel(force: true);
 
             _referencesBound = true;

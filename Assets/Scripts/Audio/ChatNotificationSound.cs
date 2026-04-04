@@ -1,45 +1,25 @@
-using System.IO;
-using System.Reflection;
 using UnityEngine;
 
 namespace ChatMod
 {
-    /// <summary>Plays chat_message.wav from the mod DLL directory when enabled in config.</summary>
+    /// <summary>Plays the chat notification sound when enabled in config.</summary>
     public static class ChatNotificationSound
     {
-        private static bool _loggedMissing;
-        private static AudioClip? _cachedClip;
+        /// <summary>Set from ChatPanel during initialization (wired via prefab).</summary>
+        public static AudioClip? Clip;
 
         public static void Play()
         {
             if (ModConfig.PlaySoundOnMessage?.Value != true)
                 return;
 
-            if (_cachedClip == null)
-            {
-                string? pluginDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                if (string.IsNullOrEmpty(pluginDir))
-                    return;
-
-                string wavPath = Path.Combine(pluginDir, "chat_message.wav");
-                _cachedClip = WavLoader.LoadFromFile(wavPath);
-
-                if (_cachedClip == null)
-                {
-                    if (!_loggedMissing)
-                    {
-                        _loggedMissing = true;
-                        ChatModLog.Warning("[ChatMod] chat_message.wav not found or invalid; notification sound disabled.");
-                    }
-
-                    return;
-                }
-            }
+            if (Clip == null)
+                return;
 
             float volume = Mathf.Clamp01(ModConfig.MessageSoundVolume?.Value ?? 0.7f);
             var cam = Camera.main;
             var position = cam != null ? cam.transform.position : Vector3.zero;
-            AudioSource.PlayClipAtPoint(_cachedClip, position, volume);
+            AudioSource.PlayClipAtPoint(Clip, position, volume);
         }
     }
 }
