@@ -2,7 +2,7 @@ using System;
 using Assets.Scripts;
 using HarmonyLib;
 
-namespace ChatMod.Patches
+namespace ChatMod
 {
     /// <summary>Routes console Print lines into chat history (non-player messages).</summary>
     [HarmonyPatch(typeof(ConsoleWindow))]

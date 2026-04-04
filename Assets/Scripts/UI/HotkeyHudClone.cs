@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-namespace ChatMod.UI
+namespace ChatMod
 {
     /// <summary>
     /// Clones the game's helmet/light hotkey row next to the stock HUD and wires it to the mod chat panel.

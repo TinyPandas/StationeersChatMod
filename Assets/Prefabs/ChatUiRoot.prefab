@@ -403,7 +403,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5890993813987895337}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc75ec1e366f4e22a8a040bffc77273d, type: 3}
+  m_Script: {fileID: 11500000, guid: 5408c43a88afe5641baa4b70614e7f0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
@@ -434,8 +434,8 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 3265168259559105774}
-  m_TextViewport: {fileID: 2052676668928335282}
+  m_TargetGraphic: {fileID: 0}
+  m_TextViewport: {fileID: 700730076769520269}
   m_TextComponent: {fileID: 1348652015025355520}
   m_Placeholder: {fileID: 6628195349907701698}
   m_VerticalScrollbar: {fileID: 0}
@@ -451,7 +451,7 @@ MonoBehaviour:
   m_HideSoftKeyboard: 0
   m_CharacterValidation: 0
   m_RegexValue: 
-  m_GlobalPointSize: 14
+  m_GlobalPointSize: 18
   m_CharacterLimit: 0
   m_OnEndEdit:
     m_PersistentCalls:
@@ -711,7 +711,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7062206434478347754}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ec5a012c37ae1244a5076b0475ea7b7, type: 3}
+  m_Script: {fileID: 11500000, guid: 2cfa3b698fe8bea46a05d2fe7e59682b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _rootRect: {fileID: 1567560084636110206}
@@ -1109,6 +1109,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 8880694373863829759}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 97bb81764b2e784449cd76b6f59601b1, type: 3}
+  m_Script: {fileID: 11500000, guid: 1b22af4bdaba5f447b6cc3b165c20d11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

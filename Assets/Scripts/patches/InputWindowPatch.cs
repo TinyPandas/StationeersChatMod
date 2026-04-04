@@ -6,7 +6,7 @@ using TMPro;
 using UnityEngine.Events;
 using GameString = Assets.Scripts.Localization2.GameString;
 
-namespace ChatMod.Patches
+namespace ChatMod
 {
     /// <summary>Intercepts vanilla chat input; opens mod UI instead.</summary>
     [HarmonyPatch(typeof(InputWindow), nameof(InputWindow.GetText))]

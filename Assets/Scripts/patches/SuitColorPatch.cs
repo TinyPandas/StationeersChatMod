@@ -1,7 +1,7 @@
 using Assets.Scripts.Objects.Entities;
 using HarmonyLib;
 
-namespace ChatMod.Patches
+namespace ChatMod
 {
     /// <summary>Refresh name-color cache when suit changes.</summary>
     [HarmonyPatch(typeof(Human), "OnSuitOccupantChanged")]

@@ -2,7 +2,7 @@ using Assets.Scripts.Networking;
 using Assets.Scripts.Objects.Entities;
 using HarmonyLib;
 
-namespace ChatMod.Patches
+namespace ChatMod
 {
     /// <summary>Player chat → history + notification; skip vanilla console line for chat.</summary>
     [HarmonyPatch(typeof(ChatMessage), nameof(ChatMessage.PrintToConsole))]

@@ -2,7 +2,7 @@ using Assets.Scripts.Inventory;
 using HarmonyLib;
 using UnityEngine;
 
-namespace ChatMod.Patches
+namespace ChatMod
 {
     [HarmonyPatch(typeof(KeyManager), nameof(KeyManager.GetButtonDown))]
     public static class KeyManagerGetButtonDownPatch

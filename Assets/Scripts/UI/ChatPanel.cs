@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Objects.Entities;
-using ChatMod.UI;
 using StationeersMods.Interface;
 using UnityEngine;
 using UnityEngine.SceneManagement;
