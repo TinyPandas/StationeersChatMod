@@ -195,8 +195,7 @@ namespace ChatMod
             }
 
             var toggleKey = ModConfig.ToggleChatPanelKey.Value;
-            if (toggleKey != KeyCode.None && Input.GetKeyDown(toggleKey) &&
-                !(_inputBar != null && _inputBar.IsFocused))
+            if (toggleKey != KeyCode.None && Input.GetKeyDown(toggleKey))
                 Toggle();
 
             HandleAltReleaseFocus();
@@ -260,6 +259,7 @@ namespace ChatMod
             if (_rootRect.gameObject.activeSelf)
             {
                 CancelFocusCoroutine();
+                _inputBar?.Clear();
                 _inputBar?.ReleaseFocus();
                 CloseWithoutFade();
                 return;
