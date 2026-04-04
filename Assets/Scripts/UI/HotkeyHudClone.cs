@@ -24,19 +24,24 @@ namespace ChatMod
         public static float IconSlotFillFraction = 0.62f;
         public static float KeyHintFontScale = 0.82f;
 
+        private static CloneMarker? _installedMarker;
+
         public static void TryInstall()
         {
+            // Fast path: already installed and still alive
+            if (_installedMarker != null)
+            {
+                ApplySpriteToMarker(_installedMarker);
+                return;
+            }
+
             var template = FindHotkeyRowTemplate();
             if (template == null)
                 return;
 
             var scene = template.scene;
             if (HasMarkerInScene(scene))
-            {
-                // Re-apply sprite in case it was set after initial install.
-                ApplySpriteToExistingClones();
                 return;
-            }
 
             var clone = Object.Instantiate(template, template.transform.parent, false);
             clone.name = CloneRootName;
@@ -48,8 +53,21 @@ namespace ChatMod
             ApplyKeyLabel(clone.transform, KeyLabel);
             RewireButton(clone.transform);
 
-            var marker = clone.AddComponent<CloneMarker>();
-            AttachUnreadBadge(clone.transform, marker);
+            _installedMarker = clone.AddComponent<CloneMarker>();
+            AttachUnreadBadge(clone.transform, _installedMarker);
+        }
+
+        private static void ApplySpriteToMarker(CloneMarker marker)
+        {
+            if (IconSpriteOverride == null || marker == null) return;
+            var icon = marker.transform.Find("IconBG/ChatIcon");
+            if (icon == null) return;
+            var img = icon.GetComponent<Image>();
+            if (img != null && img.sprite != IconSpriteOverride)
+            {
+                img.sprite = IconSpriteOverride;
+                img.preserveAspect = true;
+            }
         }
 
         private static void ApplySpriteToExistingClones()
@@ -71,17 +89,14 @@ namespace ChatMod
 
         public static void SetUnreadBadgeCount(int count)
         {
-            foreach (var m in Object.FindObjectsOfType<CloneMarker>(true))
-                m?.SetUnreadCount(count);
+            if (_installedMarker != null)
+                _installedMarker.SetUnreadCount(count);
         }
 
         public static void RefreshKeyLabelOnClones()
         {
-            foreach (var m in Object.FindObjectsOfType<CloneMarker>(true))
-            {
-                if (m != null)
-                    SetKeyLabelTextOnly(m.transform, KeyLabel);
-            }
+            if (_installedMarker != null)
+                SetKeyLabelTextOnly(_installedMarker.transform, KeyLabel);
         }
 
         // ── Private helpers ───────────────────────────────────────────────────
