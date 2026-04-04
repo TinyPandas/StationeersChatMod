@@ -112,7 +112,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3085068412602019230}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 228f2cdb09f2fe541852265e09bfa818, type: 3}
+  m_Script: {fileID: 11500000, guid: b2354923358134642b5c3e1623274762, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _chatRoot: {fileID: 1567560084636110206}
@@ -123,9 +123,9 @@ MonoBehaviour:
   _chatLauncher: {fileID: 0}
   _hideChatLauncherInScenes:
   - Base
-  _vanillaHotkeyRowIcon: {fileID: 21300000, guid: db3eec4675059cf47ab1d868eda3b5df, type: 3}
+  _vanillaHotkeyRowIcon: {fileID: 0}
   _vanillaHotkeyIconSlotFill: 0.62
-  _vanillaHotkeyKeyHintFontScale: 0.75
+  _vanillaHotkeyKeyHintFontScale: 0.82
 --- !u!1 &4196603794030358582
 GameObject:
   m_ObjectHideFlags: 0

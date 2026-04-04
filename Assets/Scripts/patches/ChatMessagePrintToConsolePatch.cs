@@ -38,7 +38,6 @@ namespace ChatMod.Patches
             string nameColorHex = PlayerNameColorCache.GetOrResolve(__instance.HumanId);
             bool isOwnMessage = Human.LocalHuman != null && __instance.HumanId == Human.LocalHuman.ReferenceId;
             ChatHistoryStore.Add(displayName, chatText, nameColorHex, countTowardUnreadBadge: !isOwnMessage);
-            ChatUiBootstrap.EnsureExists();
             if (!isOwnMessage || ModConfig.PlaySoundForOwnMessages?.Value == true)
                 ChatNotificationSound.Play();
 

@@ -9,7 +9,7 @@ namespace ChatMod.Patches
     {
         private static bool Prefix(KeyCode key, ref bool __result)
         {
-            if (ChatUiBehaviour.Instance != null && ChatUiBehaviour.Instance.IsInputActive)
+            if (ChatPanel.Instance != null && ChatPanel.Instance.IsInputActive)
             {
                 __result = false;
                 return false;
@@ -24,7 +24,7 @@ namespace ChatMod.Patches
     {
         private static bool Prefix(KeyCode key, ref bool __result)
         {
-            if (ChatUiBehaviour.Instance != null && ChatUiBehaviour.Instance.IsInputActive)
+            if (ChatPanel.Instance != null && ChatPanel.Instance.IsInputActive)
             {
                 __result = false;
                 return false;
@@ -39,7 +39,7 @@ namespace ChatMod.Patches
     {
         private static bool Prefix(KeyCode key, ref bool __result)
         {
-            if (ChatUiBehaviour.Instance != null && ChatUiBehaviour.Instance.IsInputActive)
+            if (ChatPanel.Instance != null && ChatPanel.Instance.IsInputActive)
             {
                 __result = false;
                 return false;
@@ -54,7 +54,7 @@ namespace ChatMod.Patches
     {
         private static bool Prefix(ref float __result)
         {
-            if (ChatUiBehaviour.Instance != null && ChatUiBehaviour.Instance.IsInputActive)
+            if (ChatPanel.Instance != null && ChatPanel.Instance.IsInputActive)
             {
                 __result = 0f;
                 return false;
@@ -69,7 +69,7 @@ namespace ChatMod.Patches
     {
         private static bool Prefix(ref float __result)
         {
-            if (ChatUiBehaviour.Instance != null && ChatUiBehaviour.Instance.IsInputActive)
+            if (ChatPanel.Instance != null && ChatPanel.Instance.IsInputActive)
             {
                 __result = 0f;
                 return false;
@@ -84,7 +84,7 @@ namespace ChatMod.Patches
     {
         private static bool Prefix(ref float __result)
         {
-            if (ChatUiBehaviour.Instance != null && ChatUiBehaviour.Instance.IsInputActive)
+            if (ChatPanel.Instance != null && ChatPanel.Instance.IsInputActive)
             {
                 __result = 0f;
                 return false;
@@ -99,7 +99,7 @@ namespace ChatMod.Patches
     {
         private static bool Prefix(ref float __result)
         {
-            if (ChatUiBehaviour.Instance != null && ChatUiBehaviour.Instance.IsInputActive)
+            if (ChatPanel.Instance != null && ChatPanel.Instance.IsInputActive)
             {
                 __result = 0f;
                 return false;
@@ -114,7 +114,7 @@ namespace ChatMod.Patches
     {
         private static bool Prefix()
         {
-            if (ChatUiBehaviour.Instance != null && ChatUiBehaviour.Instance.IsInputActive)
+            if (ChatPanel.Instance != null && ChatPanel.Instance.IsInputActive)
                 return false;
             return true;
         }

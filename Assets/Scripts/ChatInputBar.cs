@@ -12,8 +12,8 @@ namespace ChatMod
     {
         private ChatInputField _field;
 
-        /// <summary>Fired when the user commits (Enter). <paramref name="value"/> may be empty if they pressed Enter with no text.</summary>
-        public event Action<string> OnSubmit;
+        /// <summary>Fired when the user commits (Enter).</summary>
+        public event Action<string> Submitted;
 
         public bool IsFocused => _field != null && _field.isFocused;
 
@@ -41,7 +41,7 @@ namespace ChatMod
         /// <summary>Only fired when the user presses Enter, not when they click away (onEndEdit). So we only send on explicit submit.</summary>
         private void HandleSubmit(string value)
         {
-            OnSubmit?.Invoke(value ?? "");
+            Submitted?.Invoke(value ?? "");
         }
 
         private void OnInputEndEdit(string value)

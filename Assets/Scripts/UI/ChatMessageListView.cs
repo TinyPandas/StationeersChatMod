@@ -151,10 +151,10 @@ namespace ChatMod
         private bool TryAppendRow(ChatEntry entry)
         {
             string prefabName = entry.IsHost
-                ? ChatUiBootstrap.MessageRowHostPrefabName
-                : ChatUiBootstrap.MessageRowPrefabName;
+                ? ChatPanel.MessageRowHostPrefabName
+                : ChatPanel.MessageRowPrefabName;
 
-            var prefab = ChatUiBootstrap.TryGetNamedPrefab(prefabName);
+            var prefab = ChatPanel.TryGetNamedPrefab(prefabName);
             if (prefab == null)
             {
                 if (!_loggedMissingPrefab)

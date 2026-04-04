@@ -24,8 +24,7 @@ namespace ChatMod.Patches
             if (title != GameStrings.InputChatMessage)
                 return true;
 
-            ChatUiBootstrap.EnsureExists();
-            ChatUiBootstrap.Instance?.OpenFromGameInput();
+            ChatPanel.Instance?.Open();
             return false;
         }
     }

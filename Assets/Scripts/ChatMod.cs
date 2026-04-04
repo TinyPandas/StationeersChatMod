@@ -15,7 +15,7 @@ namespace ChatMod
             var harmony = new Harmony(PluginGuid);
             harmony.PatchAll(typeof(ChatMod).Assembly);
 
-            ChatUiBootstrap.EnsureExists(contentHandler);
+            ChatPanel.Initialize(contentHandler);
 
             ChatModLog.Info($"{PluginGuid} loaded (Harmony patched, UI host ready).");
         }

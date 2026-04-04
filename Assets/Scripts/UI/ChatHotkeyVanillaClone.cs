@@ -340,7 +340,7 @@ namespace ChatMod.UI
 
         private static void OnChatHotkeyClicked()
         {
-            ChatUiBootstrap.ToggleChatPanelHotkey();
+            ChatPanel.Instance?.Toggle();
         }
     }
 }
