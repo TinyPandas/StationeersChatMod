@@ -177,8 +177,8 @@ namespace ChatMod
             if (Time.unscaledTime >= _nextHotkeyTryUnscaled)
             {
                 _nextHotkeyTryUnscaled = Time.unscaledTime + 0.5f;
-                ChatHotkeyVanillaClone.TryInstall();
-                ChatHotkeyVanillaClone.SetUnreadBadgeCount(_unreadWhileClosed);
+                HotkeyHudClone.TryInstall();
+                HotkeyHudClone.SetUnreadBadgeCount(_unreadWhileClosed);
             }
 
             var toggleKey = ModConfig.ToggleChatPanelKey.Value;
@@ -268,13 +268,13 @@ namespace ChatMod
         {
             if (!IsInGameplay() || _chatRoot == null || _chatRoot.gameObject.activeSelf) return;
             _unreadWhileClosed++;
-            ChatHotkeyVanillaClone.SetUnreadBadgeCount(_unreadWhileClosed);
+            HotkeyHudClone.SetUnreadBadgeCount(_unreadWhileClosed);
         }
 
         private void ClearUnreadBadge()
         {
             _unreadWhileClosed = 0;
-            ChatHotkeyVanillaClone.SetUnreadBadgeCount(0);
+            HotkeyHudClone.SetUnreadBadgeCount(0);
         }
 
         private void RefreshMessages(bool force = false)
@@ -327,8 +327,8 @@ namespace ChatMod
             KeyCode k = ModConfig.ToggleChatPanelKey.Value;
             if (!force && _cachedToggleKey == k) return;
             _cachedToggleKey = k;
-            ChatHotkeyVanillaClone.KeyLabel = k == KeyCode.None ? "-" : k.ToString();
-            ChatHotkeyVanillaClone.RefreshKeyLabelOnClones();
+            HotkeyHudClone.KeyLabel = k == KeyCode.None ? "-" : k.ToString();
+            HotkeyHudClone.RefreshKeyLabelOnClones();
         }
 
         private void CancelFocusCoroutine()
@@ -385,9 +385,9 @@ namespace ChatMod
             _inputBar.BindExistingHierarchy();
             _inputBar.Submitted += OnChatInputSubmit;
 
-            ChatHotkeyVanillaClone.IconSpriteOverride = _vanillaHotkeyRowIcon;
-            ChatHotkeyVanillaClone.IconSlotFillFraction = _vanillaHotkeyIconSlotFill;
-            ChatHotkeyVanillaClone.KeyHintFontScale = _vanillaHotkeyKeyHintFontScale;
+            HotkeyHudClone.IconSpriteOverride = _vanillaHotkeyRowIcon;
+            HotkeyHudClone.IconSlotFillFraction = _vanillaHotkeyIconSlotFill;
+            HotkeyHudClone.KeyHintFontScale = _vanillaHotkeyKeyHintFontScale;
             SyncHotkeyKeyLabel(force: true);
 
             _referencesBound = true;

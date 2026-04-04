@@ -10,44 +10,18 @@ using Object = UnityEngine.Object;
 namespace ChatMod.UI
 {
     /// <summary>
-    /// Clones the game's helmet/light hotkey row next to the stock HUD and wires it to mod chat.
-    /// Driven from <see cref="ChatUiBehaviour"/> while in gameplay.
+    /// Clones the game's helmet/light hotkey row next to the stock HUD and wires it to the mod chat panel.
+    /// Driven from <see cref="ChatPanel"/> while in gameplay.
     /// </summary>
-    public sealed class ChatHotkeyCloneMarker : MonoBehaviour
-    {
-        internal GameObject? BadgeRoot;
-        internal TextMeshProUGUI? BadgeCountText;
-
-        public void SetUnreadCount(int count)
-        {
-            count = Mathf.Max(0, count);
-            if (BadgeRoot == null)
-                return;
-
-            BadgeRoot.SetActive(count > 0);
-            if (BadgeCountText == null)
-                return;
-
-            BadgeCountText.text = count > 9 ? "9+" : count.ToString();
-        }
-    }
-
-    public static class ChatHotkeyVanillaClone
+    public static class HotkeyHudClone
     {
         private const string VanillaHelmetRowName = "HelmetHotkey";
         private const string VanillaLightRowName = "LightHotkey";
         private const string CloneRootName = "ChatHotkey";
 
-        /// <summary>Assigned from <see cref="ChatUiBehaviour"/> (e.g. mod chat icon).</summary>
         public static Sprite? IconSpriteOverride;
-
-        /// <summary>Shown on the cloned row key hint (e.g. F7).</summary>
         public static string KeyLabel = "F7";
-
-        /// <summary>Icon rect uses this fraction of the smaller <c>IconBG</c> side (large sprites like message.png).</summary>
         public static float IconSlotFillFraction = 0.62f;
-
-        /// <summary>Multiplier for <c>HotkeyHint</c> key TMP size (template font is often a bit large for the row).</summary>
         public static float KeyHintFontScale = 0.82f;
 
         public static void TryInstall()
@@ -58,10 +32,13 @@ namespace ChatMod.UI
 
             var scene = template.scene;
             if (HasMarkerInScene(scene))
+            {
+                // Re-apply sprite in case it was set after initial install.
+                ApplySpriteToExistingClones();
                 return;
+            }
 
-            var parent = template.transform.parent;
-            var clone = Object.Instantiate(template, parent, false);
+            var clone = Object.Instantiate(template, template.transform.parent, false);
             clone.name = CloneRootName;
             clone.SetActive(true);
             clone.transform.SetAsLastSibling();
@@ -71,31 +48,45 @@ namespace ChatMod.UI
             ApplyKeyLabel(clone.transform, KeyLabel);
             RewireButton(clone.transform);
 
-            var marker = clone.AddComponent<ChatHotkeyCloneMarker>();
+            var marker = clone.AddComponent<CloneMarker>();
             AttachUnreadBadge(clone.transform, marker);
         }
 
-        /// <summary>Updates unread count on all cloned HUD rows in loaded scenes.</summary>
-        public static void SetUnreadBadgeCount(int count)
+        private static void ApplySpriteToExistingClones()
         {
-            foreach (var m in Object.FindObjectsOfType<ChatHotkeyCloneMarker>(true))
+            if (IconSpriteOverride == null) return;
+            foreach (var m in Object.FindObjectsOfType<CloneMarker>(true))
             {
-                if (m != null)
-                    m.SetUnreadCount(count);
+                if (m == null) continue;
+                var icon = m.transform.Find("IconBG/ChatIcon");
+                if (icon == null) continue;
+                var img = icon.GetComponent<Image>();
+                if (img != null && img.sprite != IconSpriteOverride)
+                {
+                    img.sprite = IconSpriteOverride;
+                    img.preserveAspect = true;
+                }
             }
         }
 
-        /// <summary>Updates key hint text on existing clones (does not re-apply font scale — use after <see cref="KeyLabel"/> changes).</summary>
+        public static void SetUnreadBadgeCount(int count)
+        {
+            foreach (var m in Object.FindObjectsOfType<CloneMarker>(true))
+                m?.SetUnreadCount(count);
+        }
+
         public static void RefreshKeyLabelOnClones()
         {
-            foreach (var m in Object.FindObjectsOfType<ChatHotkeyCloneMarker>(true))
+            foreach (var m in Object.FindObjectsOfType<CloneMarker>(true))
             {
                 if (m != null)
                     SetKeyLabelTextOnly(m.transform, KeyLabel);
             }
         }
 
-        private static void AttachUnreadBadge(Transform cloneRoot, ChatHotkeyCloneMarker marker)
+        // ── Private helpers ───────────────────────────────────────────────────
+
+        private static void AttachUnreadBadge(Transform cloneRoot, CloneMarker marker)
         {
             var iconBg = cloneRoot.Find("IconBG") as RectTransform;
             if (iconBg == null)
@@ -137,8 +128,7 @@ namespace ChatMod.UI
             if (hint != null)
             {
                 var key = hint.Find("Key");
-                if (key != null)
-                    fontSrc = key.GetComponent<TMP_Text>();
+                if (key != null) fontSrc = key.GetComponent<TMP_Text>();
                 fontSrc ??= hint.GetComponentInChildren<TMP_Text>(true);
             }
 
@@ -153,60 +143,49 @@ namespace ChatMod.UI
             badgeGo.SetActive(false);
         }
 
-        private static GameObject? FindHotkeyRowTemplate()
-        {
-            return FindByExactName(VanillaHelmetRowName) ?? FindByExactName(VanillaLightRowName);
-        }
+        private static GameObject? FindHotkeyRowTemplate() =>
+            FindByExactName(VanillaHelmetRowName) ?? FindByExactName(VanillaLightRowName);
 
         private static GameObject? FindByExactName(string objectName)
         {
             var found = GameObject.Find(objectName);
-            if (found != null)
-                return found;
+            if (found != null) return found;
 
             for (var si = 0; si < SceneManager.sceneCount; si++)
             {
                 var scene = SceneManager.GetSceneAt(si);
-                if (!scene.IsValid() || !scene.isLoaded)
-                    continue;
+                if (!scene.IsValid() || !scene.isLoaded) continue;
                 foreach (var root in scene.GetRootGameObjects())
                 {
-                    var t = FindChildByNameRecursive(root.transform, objectName);
-                    if (t != null)
-                        return t.gameObject;
+                    var t = FindChildByName(root.transform, objectName);
+                    if (t != null) return t.gameObject;
                 }
             }
 
             foreach (var t in Resources.FindObjectsOfTypeAll<Transform>())
             {
-                if (t.name != objectName)
-                    continue;
+                if (t.name != objectName) continue;
                 var go = t.gameObject;
-                if (!go.scene.IsValid() || !go.scene.isLoaded)
-                    continue;
-                return go;
+                if (go.scene.IsValid() && go.scene.isLoaded) return go;
             }
 
             return null;
         }
 
-        private static Transform? FindChildByNameRecursive(Transform parent, string objectName)
+        private static Transform? FindChildByName(Transform parent, string name)
         {
-            if (parent.name == objectName)
-                return parent;
+            if (parent.name == name) return parent;
             for (var i = 0; i < parent.childCount; i++)
             {
-                var deep = FindChildByNameRecursive(parent.GetChild(i), objectName);
-                if (deep != null)
-                    return deep;
+                var result = FindChildByName(parent.GetChild(i), name);
+                if (result != null) return result;
             }
-
             return null;
         }
 
         private static bool HasMarkerInScene(Scene scene)
         {
-            var markers = Object.FindObjectsOfType<ChatHotkeyCloneMarker>(true);
+            var markers = Object.FindObjectsOfType<CloneMarker>(true);
             return markers.Any(m => m != null && m.gameObject.scene == scene);
         }
 
@@ -215,8 +194,7 @@ namespace ChatMod.UI
             var list = new List<MonoBehaviour>(root.GetComponentsInChildren<MonoBehaviour>(true));
             foreach (var mb in list)
             {
-                if (mb == null)
-                    continue;
+                if (mb == null) continue;
                 var an = mb.GetType().Assembly.GetName().Name ?? string.Empty;
                 if (an is "Assembly-CSharp" or "Assembly-CSharp-firstpass")
                     Object.Destroy(mb);
@@ -226,29 +204,22 @@ namespace ChatMod.UI
         private static void RenameIconAndApplySprite(Transform root)
         {
             var iconBg = root.Find("IconBG");
-            if (iconBg == null)
-                return;
-            var helm = iconBg.Find("HelmetImage");
+            if (iconBg == null) return;
+
+            Transform? helm = iconBg.Find("HelmetImage");
             if (helm == null)
             {
                 foreach (Transform c in iconBg)
                 {
-                    if (c.GetComponent<Image>() != null)
-                    {
-                        helm = c;
-                        break;
-                    }
+                    if (c.GetComponent<Image>() != null) { helm = c; break; }
                 }
             }
 
-            if (helm == null)
-                return;
-
+            if (helm == null) return;
             helm.name = "ChatIcon";
 
             var img = helm.GetComponent<Image>();
-            if (img == null)
-                return;
+            if (img == null) return;
 
             if (IconSpriteOverride != null)
             {
@@ -274,73 +245,72 @@ namespace ChatMod.UI
 
         private static void ApplyKeyLabel(Transform root, string label)
         {
-            if (string.IsNullOrEmpty(label))
-                return;
-
+            if (string.IsNullOrEmpty(label)) return;
             var hint = root.Find("HotkeyHint");
-            if (hint == null)
-                return;
-
+            if (hint == null) return;
             var key = hint.Find("Key");
-            var tmp = key != null
-                ? key.GetComponent<TMP_Text>()
-                : hint.GetComponentInChildren<TMP_Text>(true);
-            if (tmp == null)
-                return;
-
+            var tmp = key != null ? key.GetComponent<TMP_Text>() : hint.GetComponentInChildren<TMP_Text>(true);
+            if (tmp == null) return;
             tmp.text = label;
-
             float s = KeyHintFontScale;
             if (s > 0f && Mathf.Abs(s - 1f) > 0.001f)
             {
-                if (tmp.enableAutoSizing)
-                {
-                    tmp.fontSizeMin *= s;
-                    tmp.fontSizeMax *= s;
-                }
-                else
-                    tmp.fontSize *= s;
+                if (tmp.enableAutoSizing) { tmp.fontSizeMin *= s; tmp.fontSizeMax *= s; }
+                else tmp.fontSize *= s;
             }
         }
 
         private static void SetKeyLabelTextOnly(Transform root, string label)
         {
-            if (string.IsNullOrEmpty(label))
-                return;
-
+            if (string.IsNullOrEmpty(label)) return;
             var hint = root.Find("HotkeyHint");
-            if (hint == null)
-                return;
-
+            if (hint == null) return;
             var key = hint.Find("Key");
-            var tmp = key != null
-                ? key.GetComponent<TMP_Text>()
-                : hint.GetComponentInChildren<TMP_Text>(true);
-            if (tmp == null)
-                return;
-
-            tmp.text = label;
+            var tmp = key != null ? key.GetComponent<TMP_Text>() : hint.GetComponentInChildren<TMP_Text>(true);
+            if (tmp != null) tmp.text = label;
         }
 
         private static void RewireButton(Transform root)
         {
-            var hint = root.Find("HotkeyHint");
-            var btn = hint != null
-                ? hint.GetComponent<Button>()
-                : root.GetComponentInChildren<Button>(true);
-            if (btn == null)
-                return;
-
-            var click = (UnityEventBase)btn.onClick;
-            for (var i = click.GetPersistentEventCount() - 1; i >= 0; i--)
-                click.SetPersistentListenerState(i, UnityEventCallState.Off);
-            btn.onClick.RemoveAllListeners();
-            btn.onClick.AddListener(OnChatHotkeyClicked);
+            // The vanilla row may not use a Unity Button — it uses game scripts for click handling.
+            // Those get stripped, so we add our own Button to the clone root.
+            var btn = root.GetComponentInChildren<Button>(true);
+            if (btn != null)
+            {
+                var click = (UnityEventBase)btn.onClick;
+                for (var i = click.GetPersistentEventCount() - 1; i >= 0; i--)
+                    click.SetPersistentListenerState(i, UnityEventCallState.Off);
+                btn.onClick.RemoveAllListeners();
+            }
+            else
+            {
+                // No existing Button — add one to the root so the entire row is clickable.
+                btn = root.gameObject.AddComponent<Button>();
+                btn.transition = Selectable.Transition.None;
+            }
+            btn.onClick.AddListener(OnCloneClicked);
         }
 
-        private static void OnChatHotkeyClicked()
+        private static void OnCloneClicked()
         {
             ChatPanel.Instance?.Toggle();
+        }
+
+        // ── CloneMarker ───────────────────────────────────────────────────────
+
+        internal sealed class CloneMarker : MonoBehaviour
+        {
+            internal GameObject? BadgeRoot;
+            internal TextMeshProUGUI? BadgeCountText;
+
+            public void SetUnreadCount(int count)
+            {
+                count = Mathf.Max(0, count);
+                if (BadgeRoot == null) return;
+                BadgeRoot.SetActive(count > 0);
+                if (BadgeCountText != null)
+                    BadgeCountText.text = count > 9 ? "9+" : count.ToString();
+            }
         }
     }
 }

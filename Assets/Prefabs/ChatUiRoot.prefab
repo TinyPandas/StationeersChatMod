@@ -123,7 +123,7 @@ MonoBehaviour:
   _chatLauncher: {fileID: 0}
   _hideChatLauncherInScenes:
   - Base
-  _vanillaHotkeyRowIcon: {fileID: 0}
+  _vanillaHotkeyRowIcon: {fileID: 21300000, guid: db3eec4675059cf47ab1d868eda3b5df, type: 3}
   _vanillaHotkeyIconSlotFill: 0.62
   _vanillaHotkeyKeyHintFontScale: 0.82
 --- !u!1 &4196603794030358582
