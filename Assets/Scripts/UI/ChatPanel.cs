@@ -239,7 +239,6 @@ namespace ChatMod
             _rootRect.gameObject.SetActive(true);
             ClearUnreadBadge();
             InvalidateMessageListRefresh();
-            StartFocusAfterFrames(3);
         }
 
         // ── Private ───────────────────────────────────────────────────────────
