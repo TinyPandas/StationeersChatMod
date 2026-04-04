@@ -98,6 +98,16 @@ namespace ChatMod
         private KeyCode? _cachedToggleKey;
         private Coroutine? _focusCoroutine;
 
+        // ── Auto-fade state ──────────────────────────────────────────────────
+        private CanvasGroup _canvasGroup = null!;
+
+        private enum FadeState { Idle, Counting, Fading }
+        private FadeState _fadeState = FadeState.Idle;
+
+        private float _inactivityTimer;
+        private const float FadeDuration = 0.5f;
+        private bool _wasFocusedForFade;
+
         private int _lastRenderedCount = -1;
         private long _lastRenderedLastTicks = -1;
         private long _lastRenderedFirstSeq = -1;
@@ -164,7 +174,7 @@ namespace ChatMod
                     _messageListView.Clear();
                 }
 
-                _rootRect.gameObject.SetActive(false);
+                CloseWithoutFade();
                 _wasInGameplay = false;
                 return;
             }
@@ -198,6 +208,8 @@ namespace ChatMod
 
             if (_ignoreOpenFramesRemaining > 0)
                 _ignoreOpenFramesRemaining--;
+
+            UpdateAutoFade();
         }
 
         // ── Public API ────────────────────────────────────────────────────────
@@ -213,6 +225,11 @@ namespace ChatMod
                 ClearUnreadBadge();
                 InvalidateMessageListRefresh();
             }
+
+            _canvasGroup.alpha = 1f;
+            _canvasGroup.blocksRaycasts = true;
+            _canvasGroup.interactable = true;
+            ResetInactivityTimer();
 
             if (_inputBar != null && _inputBar.IsFocused)
             {
@@ -232,13 +249,18 @@ namespace ChatMod
             {
                 CancelFocusCoroutine();
                 _inputBar?.ReleaseFocus();
-                _rootRect.gameObject.SetActive(false);
+                CloseWithoutFade();
                 return;
             }
 
             _rootRect.gameObject.SetActive(true);
             ClearUnreadBadge();
             InvalidateMessageListRefresh();
+
+            _canvasGroup.alpha = 1f;
+            _canvasGroup.blocksRaycasts = true;
+            _canvasGroup.interactable = true;
+            ResetInactivityTimer();
         }
 
         // ── Private ───────────────────────────────────────────────────────────
@@ -264,7 +286,19 @@ namespace ChatMod
 
         private void OnMessageAddedWhileClosed()
         {
-            if (!IsInGameplay() || _chatRoot == null || _chatRoot.gameObject.activeSelf) return;
+            if (!IsInGameplay() || _chatRoot == null) return;
+
+            // Panel is open — reset timer or cancel fade to keep it visible
+            if (_chatRoot.gameObject.activeSelf)
+            {
+                if (_fadeState == FadeState.Fading)
+                    CancelFadeAndReset();
+                else if (_fadeState == FadeState.Counting)
+                    ResetInactivityTimer();
+                return;
+            }
+
+            // Panel is closed — increment unread badge
             _unreadWhileClosed++;
             HotkeyHudClone.SetUnreadBadgeCount(_unreadWhileClosed);
         }
@@ -350,6 +384,94 @@ namespace ChatMod
             _inputBar.RequestFocus();
         }
 
+        private void ResetInactivityTimer()
+        {
+            _inactivityTimer = ModConfig.AutoFadeTimeout.Value;
+            _fadeState = FadeState.Counting;
+            _canvasGroup.alpha = 1f;
+            _canvasGroup.blocksRaycasts = true;
+            _canvasGroup.interactable = true;
+        }
+
+        private void CancelFadeAndReset()
+        {
+            if (_fadeState == FadeState.Fading)
+            {
+                _canvasGroup.alpha = 1f;
+                ResetInactivityTimer();
+            }
+        }
+
+        private void CloseWithoutFade()
+        {
+            _canvasGroup.alpha = 1f;
+            _canvasGroup.blocksRaycasts = true;
+            _canvasGroup.interactable = true;
+            _rootRect.gameObject.SetActive(false);
+            _fadeState = FadeState.Idle;
+        }
+
+        private void UpdateAutoFade()
+        {
+            bool enabled = ModConfig.EnableAutoFade?.Value ?? true;
+
+            if (!enabled)
+            {
+                // Transitioning from enabled to disabled while active: cancel and restore
+                if (_fadeState == FadeState.Counting || _fadeState == FadeState.Fading)
+                {
+                    _canvasGroup.alpha = 1f;
+                    _canvasGroup.blocksRaycasts = true;
+                    _canvasGroup.interactable = true;
+                    _fadeState = FadeState.Idle;
+                }
+                return;
+            }
+
+            bool isFocused = _inputBar != null && _inputBar.IsFocused;
+
+            switch (_fadeState)
+            {
+                case FadeState.Counting:
+                    if (isFocused)
+                    {
+                        // Pause timer while input is focused
+                        _wasFocusedForFade = true;
+                        return;
+                    }
+
+                    if (_wasFocusedForFade)
+                    {
+                        // Focus just lost — reset timer to current timeout
+                        _wasFocusedForFade = false;
+                        _inactivityTimer = ModConfig.AutoFadeTimeout.Value;
+                        return;
+                    }
+
+                    _inactivityTimer -= Time.unscaledDeltaTime;
+                    if (_inactivityTimer <= 0f)
+                    {
+                        _fadeState = FadeState.Fading;
+                    }
+                    break;
+
+                case FadeState.Fading:
+                    float newAlpha = _canvasGroup.alpha - Time.unscaledDeltaTime / FadeDuration;
+                    newAlpha = Mathf.Clamp01(newAlpha);
+                    _canvasGroup.alpha = newAlpha;
+                    _canvasGroup.blocksRaycasts = true;
+                    _canvasGroup.interactable = true;
+
+                    if (newAlpha <= 0f)
+                    {
+                        _canvasGroup.alpha = 1f;
+                        _rootRect.gameObject.SetActive(false);
+                        _fadeState = FadeState.Idle;
+                    }
+                    break;
+            }
+        }
+
         private bool TryResolveReferences()
         {
             if (_chatRoot == null || _scrollRectOnChatRoot == null ||
@@ -382,6 +504,13 @@ namespace ChatMod
 
             _inputBar.BindExistingHierarchy();
             _inputBar.Submitted += OnChatInputSubmit;
+
+            _canvasGroup = _chatRoot.GetComponent<CanvasGroup>();
+            if (_canvasGroup == null)
+            {
+                ChatModLog.Error("[ChatPanel] ChatRoot must have a CanvasGroup component for auto-fade support.");
+                return false;
+            }
 
             HotkeyHudClone.IconSpriteOverride = _vanillaHotkeyRowIcon;
             HotkeyHudClone.IconSlotFillFraction = _vanillaHotkeyIconSlotFill;

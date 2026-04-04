@@ -41,6 +41,12 @@ namespace ChatMod
         /// <summary>Volume for the chat message notification sound (0–1).</summary>
         public static ConfigEntry<float> MessageSoundVolume = null!;
 
+        /// <summary>Automatically fade and close the chat panel after a period of inactivity.</summary>
+        public static ConfigEntry<bool> EnableAutoFade = null!;
+
+        /// <summary>Seconds of inactivity before the chat panel begins to fade out.</summary>
+        public static ConfigEntry<float> AutoFadeTimeout = null!;
+
         private static ConfigFile? _configFile;
 
         /// <summary>Persist config to disk (e.g. after updating chat window position).</summary>
@@ -142,6 +148,23 @@ namespace ChatMod
                 "LogConsoleMessages",
                 false,
                 "Capture [Console] messages (general output from commands, debug, etc.). Can be noisy."
+            );
+
+            EnableAutoFade = config.Bind(
+                "Auto-Fade",
+                "EnableAutoFade",
+                true,
+                "Automatically fade and close the chat panel after a period of inactivity."
+            );
+
+            AutoFadeTimeout = config.Bind(
+                "Auto-Fade",
+                "AutoFadeTimeout",
+                10f,
+                new ConfigDescription(
+                    "Seconds of inactivity before the chat panel begins to fade out.",
+                    new AcceptableValueRange<float>(2f, 120f)
+                )
             );
         }
     }

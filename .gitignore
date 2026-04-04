@@ -112,6 +112,7 @@ InitTestScene*.unity*
 # IDE folders
 .idea/
 .vscode/
+.kiro/
 
 # Unity package manager lock — reproducible from manifest.json
 Packages/packages-lock.json
